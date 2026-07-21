@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f1e8" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="description" content="每日热洞公开只读快照" />
+    <title>每日热洞 · 公开只读版</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#mainContent">跳到主要内容</a>
+
+    <div class="page-shell">
+      <header class="site-header">
+        <div>
+          <p class="eyebrow">DAILY HOT HOLE</p>
+          <h1>每日热洞</h1>
+          <p class="subtitle">公开只读快照 · 不提供登录、设置或写入功能</p>
+        </div>
+        <div class="snapshot-state" aria-live="polite">
+          <span class="state-dot" aria-hidden="true"></span>
+          <span id="snapshotState">正在读取快照</span>
+        </div>
+      </header>
+
+      <main id="mainContent">
+        <section class="notice" aria-label="使用说明">
+          <strong>只读镜像</strong>
+          <span id="snapshotTime">数据由校内监控服务定时脱敏生成，页面本身无法修改监控任务。</span>
+        </section>
+
+        <section id="metrics" class="metrics" aria-label="快照概览"></section>
+
+        <section class="toolbar" aria-label="筛选">
+          <label>
+            <span>日期</span>
+            <select id="daySelect"></select>
+          </label>
+          <label class="search-field">
+            <span>搜索当前日期</span>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="搜索帖子或评论内容" />
+          </label>
+        </section>
+
+        <section class="content-grid">
+          <aside class="ranking-panel" aria-labelledby="rankingTitle">
+            <div class="panel-heading">
+              <div>
+                <p class="panel-kicker">HOT RANKING</p>
+                <h2 id="rankingTitle">当日榜单</h2>
+              </div>
+              <span id="rankingCount" class="count-badge">0 条</span>
+            </div>
+            <div id="rankingList" class="ranking-list"></div>
+          </aside>
+
+          <article class="detail-panel" aria-labelledby="detailTitle">
+            <div id="detailEmpty" class="empty-state">
+              <strong>暂无可显示内容</strong>
+              <span>请选择含有公开条目的日期。</span>
+            </div>
+
+            <div id="detailContent" hidden>
+              <header class="detail-header">
+                <div>
+                  <p id="detailMeta" class="panel-kicker"></p>
+                  <h2 id="detailTitle">帖子详情</h2>
+                </div>
+                <div id="detailHeat" class="heat-badge" title="点赞数与评论数之和">0</div>
+              </header>
+              <p id="postText" class="post-text"></p>
+              <div id="postStats" class="post-stats"></div>
+              <section class="comments-section" aria-labelledby="commentsTitle">
+                <div class="comments-heading">
+                  <h3 id="commentsTitle">公开评论</h3>
+                  <span id="commentsCount"></span>
+                </div>
+                <div id="commentsList" class="comments-list"></div>
+              </section>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>静态快照仅供查阅。内容版权与责任归原作者及原平台所有。</p>
+        <p>本站使用 Cloudflare Web Analytics 获取匿名化访问和性能统计。</p>
+      </footer>
+    </div>
+
+    <noscript>需要启用 JavaScript 才能读取本地静态快照。</noscript>
+    <script defer src="./assets/app.js"></script>
+    <!-- cloudflare-web-analytics -->
+  </body>
+</html>
