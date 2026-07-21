@@ -41,6 +41,7 @@ class SnapshotTests(unittest.TestCase):
                                     "cid": 1,
                                     "text": "公开评论",
                                     "timestamp": 1784592100,
+                                    "name_tag": "Alice",
                                     "identity_info": "private commenter",
                                     "exclusive_id_info": "private exclusive id",
                                     "media_ids": "private media id",
@@ -61,6 +62,8 @@ class SnapshotTests(unittest.TestCase):
 
         self.assertEqual(result["stats"], {"day_count": 1, "post_count": 1, "comment_count": 1})
         self.assertEqual(result["days"][0]["posts"][0]["post"]["text"], "公开帖子")
+        self.assertEqual(result["days"][0]["posts"][0]["comments"][0]["name_tag"], "Alice")
+        self.assertTrue(result["public_policy"]["anonymous_name_tags_included"])
         self.assertNotIn("settings", serialized)
         self.assertNotIn("password", serialized)
         self.assertNotIn("token", serialized)

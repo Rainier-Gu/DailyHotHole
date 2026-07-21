@@ -316,10 +316,11 @@ svg {
 }
 
 .workspace {
-  height: calc(100vh - 166px);
-  min-height: 620px;
+  height: auto;
+  min-height: 720px;
   display: grid;
-  grid-template-columns: 260px 380px minmax(420px, 1fr);
+  grid-template-columns: 350px minmax(0, 1fr);
+  grid-template-rows: auto minmax(620px, calc(100vh - 290px));
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -336,7 +337,16 @@ svg {
 }
 
 .day-panel {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 170px minmax(250px, 1fr) minmax(250px, 360px);
+  grid-template-rows: auto 104px;
+  align-items: center;
   overflow: hidden;
+}
+
+.day-panel .panel-title {
+  border-bottom: 0;
 }
 
 .rank-panel,
@@ -385,7 +395,7 @@ svg {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr) 34px;
   gap: 6px;
-  padding: 12px 12px 9px;
+  padding: 10px;
 }
 
 .day-step-button,
@@ -428,7 +438,7 @@ svg {
 .day-summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  margin: 0 12px 10px;
+  margin: 10px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface-subtle);
@@ -461,8 +471,9 @@ svg {
 }
 
 .chart-wrap {
-  height: 122px;
-  margin: 0 12px 12px;
+  height: 104px;
+  grid-column: 1 / -1;
+  margin: 0 10px 10px;
   padding: 8px;
   border-top: 1px solid var(--line);
   background: var(--surface);
@@ -635,7 +646,7 @@ svg {
 
 .comment-toolbar {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto auto;
+  grid-template-columns: minmax(180px, 1fr) auto;
   align-items: center;
   gap: 10px;
   padding: 9px 12px;
@@ -670,24 +681,6 @@ svg {
 
 .search-box input:focus {
   border-color: var(--accent);
-}
-
-.filter-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 750;
-  white-space: nowrap;
-}
-
-.filter-toggle input {
-  width: 15px;
-  height: 15px;
-  margin: 0;
-  accent-color: var(--accent);
 }
 
 .comments-list {
@@ -860,10 +853,6 @@ svg {
   font-size: 13px;
   line-height: 1.55;
   text-align: center;
-}
-
-.mobile-view-tabs {
-  display: none;
 }
 
 .drawer-backdrop {
@@ -1125,38 +1114,6 @@ input[type="range"] {
     padding: 11px 13px;
   }
 
-  .workspace {
-    height: auto;
-    min-height: 720px;
-    grid-template-columns: 350px minmax(0, 1fr);
-    grid-template-rows: auto minmax(620px, calc(100vh - 290px));
-  }
-
-  .day-panel {
-    display: grid;
-    grid-column: 1 / -1;
-    grid-template-columns: 170px minmax(250px, 1fr) minmax(250px, 360px);
-    grid-template-rows: auto 104px;
-    align-items: center;
-  }
-
-  .day-panel .panel-title {
-    border-bottom: 0;
-  }
-
-  .day-navigator {
-    padding: 10px;
-  }
-
-  .day-summary {
-    margin: 10px;
-  }
-
-  .chart-wrap {
-    height: 104px;
-    grid-column: 1 / -1;
-    margin: 0 10px 10px;
-  }
 }
 
 @media (max-width: 820px) {
@@ -1193,13 +1150,6 @@ input[type="range"] {
     border-right: 0;
   }
 
-  .workspace {
-    grid-template-columns: 310px minmax(0, 1fr);
-  }
-
-  .day-panel {
-    grid-template-columns: 150px minmax(220px, 1fr) minmax(230px, 1fr);
-  }
 }
 
 @media (max-width: 767px) {
@@ -1261,38 +1211,11 @@ input[type="range"] {
     border-right: 0;
   }
 
-  .mobile-view-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3px;
-    margin-bottom: 8px;
-    padding: 3px;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    background: var(--surface-muted);
-  }
-
-  .mobile-view-tabs button {
-    height: 32px;
-    border: 0;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 800;
-  }
-
-  .mobile-view-tabs button.active {
-    background: var(--surface);
-    color: var(--accent-dark);
-    box-shadow: 0 1px 4px rgba(24, 35, 27, 0.1);
-  }
-
   .workspace {
     min-height: 0;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto;
   }
 
   .day-panel {
@@ -1319,15 +1242,6 @@ input[type="range"] {
     height: 96px;
     grid-column: auto;
     margin: 0 10px 10px;
-  }
-
-  .mobile-panel {
-    display: none;
-    min-height: 610px;
-  }
-
-  .mobile-panel.active {
-    display: flex;
   }
 
   .rank-list {

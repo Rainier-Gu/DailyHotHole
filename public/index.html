@@ -34,11 +34,6 @@
           <div id="roundDetails" class="round-details" hidden></div>
         </section>
 
-        <nav class="mobile-view-tabs" aria-label="内容视图">
-          <button type="button" data-mobile-view="rank" aria-pressed="true">榜单</button>
-          <button type="button" data-mobile-view="detail" aria-pressed="false">详情</button>
-        </nav>
-
         <section class="workspace">
           <aside class="day-panel">
             <div class="panel-title">
@@ -66,7 +61,7 @@
             </div>
           </aside>
 
-          <section class="rank-panel mobile-panel active" data-mobile-panel="rank">
+          <section class="rank-panel">
             <div class="panel-title">
               <div>
                 <p class="panel-kicker">HOT RANKING</p>
@@ -77,7 +72,7 @@
             <div class="rank-list" id="rankList"></div>
           </section>
 
-          <section class="detail-panel mobile-panel" data-mobile-panel="detail">
+          <section class="detail-panel">
             <div class="detail-head">
               <div class="detail-heading">
                 <p class="eyebrow" id="detailEyebrow">未选择</p>
@@ -93,10 +88,6 @@
                   <path d="m16 16 4 4" />
                 </svg>
                 <input id="commentSearch" type="search" placeholder="搜索评论、楼层或身份" />
-              </label>
-              <label class="filter-toggle">
-                <input id="referencedOnlyCheckbox" type="checkbox" />
-                <span>只看引用</span>
               </label>
               <span id="commentCount" class="muted-count">0</span>
             </div>

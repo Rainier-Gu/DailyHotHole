@@ -18,11 +18,8 @@ const els = {
   detailHeat: document.querySelector("#detailHeat"),
   postBody: document.querySelector("#postBody"),
   commentSearch: document.querySelector("#commentSearch"),
-  referencedOnlyCheckbox: document.querySelector("#referencedOnlyCheckbox"),
   commentCount: document.querySelector("#commentCount"),
   commentsList: document.querySelector("#commentsList"),
-  mobileViewButtons: [...document.querySelectorAll("[data-mobile-view]")],
-  mobilePanels: [...document.querySelectorAll("[data-mobile-panel]")],
   toast: document.querySelector("#toast")
 };
 
@@ -40,9 +37,7 @@ const state = {
   selectedDate: "",
   selectedPid: 0,
   commentQuery: "",
-  referencedOnly: false,
   roundDetailsOpen: false,
-  mobileView: "rank",
   timer: 0,
   toastTimer: 0,
   renderKeys: {
@@ -70,10 +65,6 @@ function bindEvents() {
     renderRoundDetails();
   });
 
-  for (const button of els.mobileViewButtons) {
-    button.addEventListener("click", () => setMobileView(button.dataset.mobileView));
-  }
-
   els.daySelect.addEventListener("change", () => selectDate(els.daySelect.value));
   els.olderDayBtn.addEventListener("click", () => stepDay(1));
   els.newerDayBtn.addEventListener("click", () => stepDay(-1));
@@ -85,16 +76,10 @@ function bindEvents() {
     renderRank();
     renderDetail();
     renderComments();
-    if (window.innerWidth < 768) setMobileView("detail");
   });
 
   els.commentSearch.addEventListener("input", () => {
     state.commentQuery = els.commentSearch.value.trim().toLowerCase();
-    renderComments();
-  });
-
-  els.referencedOnlyCheckbox.addEventListener("change", () => {
-    state.referencedOnly = els.referencedOnlyCheckbox.checked;
     renderComments();
   });
 
@@ -371,7 +356,6 @@ function renderComments() {
     ? JSON.stringify([
         item.post.pid,
         state.commentQuery,
-        state.referencedOnly,
         item.comments_total,
         item.comments_omitted,
         commentsFingerprint(item.comments || [])
@@ -384,10 +368,10 @@ function renderComments() {
   const relations = buildCommentRelations(item.comments || []);
   const query = state.commentQuery;
   const comments = (item.comments || []).filter((comment, index) => {
-    if (state.referencedOnly && !comment.quote_id && !relations.quotedBy.has(comment.cid)) return false;
     if (!query) return true;
     return [
       comment.text,
+      comment.name_tag,
       String(comment.cid),
       String(index + 1),
       comment.quote_id ? String(comment.quote_id) : ""
@@ -396,8 +380,7 @@ function renderComments() {
   const totalText = item.comments_total ? `${comments.length} / ${item.comments_total}` : String(comments.length);
   els.commentCount.textContent = `${totalText} 条评论`;
   if (!comments.length) {
-    const message = state.referencedOnly ? "当前评论中没有引用关系" : "暂无公开评论";
-    replaceChildren(els.commentsList, [el("div", "empty-state", message)]);
+    replaceChildren(els.commentsList, [el("div", "empty-state", "暂无公开评论")]);
     els.commentsList.scrollTop = scrollTop;
     return;
   }
@@ -421,7 +404,7 @@ function createCommentCard(comment, relations) {
   card.style.setProperty("--person-ink", color.ink);
   card.style.setProperty("--person-muted", color.muted);
   const head = el("div", "comment-head");
-  const author = comment.is_author || comment.is_lz ? "洞主" : "匿名";
+  const author = comment.name_tag || (comment.is_author || comment.is_lz ? "洞主" : "匿名");
   head.append(
     el("span", "comment-author", author),
     el("span", "", `C${comment.cid} · ${formatUnix(comment.timestamp)}`)
@@ -433,7 +416,7 @@ function createCommentCard(comment, relations) {
     quote.type = "button";
     quote.dataset.jumpComment = String(comment.quote_id);
     quote.append(
-      el("strong", "", `引用 C${comment.quote_id}`),
+      el("strong", "", `引用 C${comment.quote_id}${target?.name_tag ? ` · ${target.name_tag}` : ""}`),
       el("span", "", target ? clipText(target.text, 100) : "被引用评论不在当前保存内容中")
     );
     card.append(quote);
@@ -496,11 +479,6 @@ function jumpToComment(cid) {
     els.commentSearch.value = "";
     renderComments();
   }
-  if (state.referencedOnly) {
-    state.referencedOnly = false;
-    els.referencedOnlyCheckbox.checked = false;
-    renderComments();
-  }
   window.requestAnimationFrame(() => {
     const target = document.querySelector(`#comment-${cid}`);
     if (!target) return;
@@ -512,7 +490,7 @@ function jumpToComment(cid) {
 }
 
 function commentIdentity(comment) {
-  return comment.is_author || comment.is_lz ? "洞主" : `公开评论-${comment.cid}`;
+  return comment.name_tag || (comment.is_author || comment.is_lz ? "洞主" : "匿名");
 }
 
 function colorForIdentity(identity) {
@@ -547,6 +525,7 @@ function commentsFingerprint(comments) {
       comment.cid,
       comment.timestamp,
       comment.quote_id || 0,
+      comment.name_tag || "",
       comment.text || "",
       comment.is_author || comment.is_lz ? "author" : "anonymous"
     ].join("|");
@@ -620,23 +599,6 @@ function roundRect(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
-function setMobileView(view) {
-  if (view !== "rank" && view !== "detail") return;
-  state.mobileView = view;
-  renderMobileView();
-}
-
-function renderMobileView() {
-  for (const button of els.mobileViewButtons) {
-    const active = button.dataset.mobileView === state.mobileView;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  }
-  for (const panel of els.mobilePanels) {
-    panel.classList.toggle("active", panel.dataset.mobilePanel === state.mobileView);
-  }
-}
-
 function getSelectedDay() {
   return (state.data?.days || []).find((day) => day.date === state.selectedDate) || null;
 }
@@ -646,7 +608,6 @@ function selectDate(date) {
   state.selectedDate = date;
   const day = getSelectedDay();
   state.selectedPid = day?.posts?.[0]?.post?.pid || 0;
-  if (window.innerWidth < 768) state.mobileView = "rank";
   render();
 }
 

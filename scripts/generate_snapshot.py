@@ -69,6 +69,7 @@ def safe_comment(raw: Any) -> dict[str, Any] | None:
         "cid": as_int(raw.get("cid")),
         "text": text,
         "timestamp": as_int(raw.get("timestamp")),
+        "name_tag": clean_text(raw.get("name_tag"), 64),
         "is_author": bool(raw.get("is_author")),
         "is_lz": bool(raw.get("is_lz")),
         "quote_id": as_int(quote_id) if quote_id is not None else None,
@@ -182,6 +183,7 @@ def sanitize_snapshot(
             "max_comments_per_post": max_comments,
             "media_included": False,
             "identities_included": False,
+            "anonymous_name_tags_included": True,
         },
         "days": public_days,
     }

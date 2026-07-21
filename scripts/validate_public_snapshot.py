@@ -35,6 +35,8 @@ def walk(value: Any, path: str = "$") -> None:
         for key, child in value.items():
             if key in FORBIDDEN_KEYS:
                 raise ValueError(f"forbidden key {key!r} at {path}")
+            if key == "name_tag" and (not isinstance(child, str) or len(child) > 64):
+                raise ValueError(f"invalid anonymous name_tag at {path}")
             walk(child, f"{path}.{key}")
     elif isinstance(value, list):
         for index, child in enumerate(value):
@@ -66,6 +68,10 @@ def validate(path: Path) -> dict[str, Any]:
         raise ValueError(f"public_policy.max_days must be {EXPECTED_DAYS}")
     if policy.get("top_n") != EXPECTED_POSTS_PER_DAY:
         raise ValueError(f"public_policy.top_n must be {EXPECTED_POSTS_PER_DAY}")
+    if policy.get("identities_included") is not False:
+        raise ValueError("public_policy.identities_included must remain false")
+    if policy.get("anonymous_name_tags_included") is not True:
+        raise ValueError("public_policy.anonymous_name_tags_included must be true")
     walk(payload)
     return payload
 
