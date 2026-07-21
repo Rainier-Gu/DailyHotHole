@@ -24,6 +24,8 @@ jobs:
         run: |
           python -m json.tool vercel.json > /dev/null
           python -c "import json; assert json.load(open('vercel.json'))['outputDirectory'] == 'public'"
+          grep -q '/_vercel/insights/script.js' public/index.html
+          grep -q 'window.va' public/assets/vercel-analytics.js
       - name: Assert the public artifact has no management controls
         run: |
           ! grep -R -E '/api/(settings|refresh|export|backfill)|settingsDrawer|password|login_token|cloudflare' public vercel.json
