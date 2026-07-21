@@ -1,6 +1,6 @@
 # DailyHotHole 公开只读快照
 
-这是每日热洞监控的公开静态版本。Clab 上的私有监控服务定时生成经过白名单过滤的 JSON，推送到本仓库；Cloudflare Pages 只托管静态 HTML、CSS、JavaScript 和快照文件。
+这是每日热洞监控的公开静态版本。Clab 上的私有监控服务定时生成经过白名单过滤的 JSON，本地 Codex 自动化任务通过 SSH 只下载这份脱敏文件并推送到本仓库；Cloudflare Pages 只托管静态 HTML、CSS、JavaScript 和快照文件。
 
 公开站点没有登录、设置、刷新、回填或导出接口。管理服务继续只监听 Clab 的 `127.0.0.1:8766`，必须通过 SSH 隧道访问。
 
@@ -35,7 +35,7 @@
 | Build output directory | `dist` |
 | Root directory | `/`（留空即可） |
 
-每次 Clab 推送快照后，Pages 会自动重新构建。当前定时器每两小时最多推送一次，约 360 次/月，为 Cloudflare Pages 免费套餐的 500 次/月构建额度保留了手动发布空间。
+每次自动化任务推送快照后，Pages 会自动重新构建。当前任务每两小时最多推送一次，约 360 次/月，为 Cloudflare Pages 免费套餐的 500 次/月构建额度保留了手动发布空间。
 
 ### Cloudflare Web Analytics
 
@@ -49,34 +49,36 @@ CF_WEB_ANALYTICS_TOKEN=<Cloudflare 提供的站点 Token>
 
 构建脚本会把 token 写入最终的 `dist/index.html`，但不会改动或提交仓库源文件。不要把 token 直接提交到 GitHub。
 
-## Clab 自动任务
+## 自动任务
 
-已安装的 systemd 单元：
+Clab 无法连接 GitHub 的 SSH 或 HTTPS 入口，因此采用两段式任务，避免在 Clab 中保存 GitHub Token：
 
-- `dailyhothole-snapshot.timer`：开机十分钟后运行，并在每个双数小时定时触发；
-- `dailyhothole-snapshot.service`：读取 `http://127.0.0.1:8766/api/state`、脱敏、提交并推送；
-- `/opt/dailyhothole-public/ssh/github-deploy-key`：仅用于向本仓库写入的 Deploy Key。
+- Clab 的 `dailyhothole-generate.timer` 每两小时生成 `/opt/dailyhothole-public/export/snapshot.json`；
+- 本地 Codex 自动化任务运行 `scripts/publish_from_windows.ps1`，只下载脱敏文件；
+- PowerShell 脚本再次验证隐私字段与 24 MiB 上限，然后提交并推送 `public/data/snapshot.json`。
+
+本地任务需要电脑开机、Codex 可运行，并且当前网络能够 SSH 访问 Clab（校园网或相应 VPN）。GitHub 登录使用当前 Windows 用户的 Git 凭据，不会写入脚本。
 
 常用维护命令：
 
 ```bash
-sudo systemctl status dailyhothole-snapshot.timer
-sudo systemctl status dailyhothole-snapshot.service
-sudo systemctl start dailyhothole-snapshot.service
-sudo journalctl -u dailyhothole-snapshot.service -n 100 --no-pager
-systemctl list-timers dailyhothole-snapshot.timer
+sudo systemctl status dailyhothole-generate.timer
+sudo systemctl status dailyhothole-generate.service
+sudo systemctl start dailyhothole-generate.service
+sudo journalctl -u dailyhothole-generate.service -n 100 --no-pager
+systemctl list-timers dailyhothole-generate.timer
 ```
 
 暂停公开快照更新：
 
 ```bash
-sudo systemctl disable --now dailyhothole-snapshot.timer
+sudo systemctl disable --now dailyhothole-generate.timer
 ```
 
 恢复更新：
 
 ```bash
-sudo systemctl enable --now dailyhothole-snapshot.timer
+sudo systemctl enable --now dailyhothole-generate.timer
 ```
 
 ## 本地验证

@@ -1,0 +1,12 @@
+[Unit]
+Description=Generate the DailyHotHole public snapshot every two hours
+
+[Timer]
+OnBootSec=5min
+OnCalendar=*-*-* 00/2:05:00
+Persistent=true
+AccuracySec=1min
+Unit=dailyhothole-generate.service
+
+[Install]
+WantedBy=timers.target

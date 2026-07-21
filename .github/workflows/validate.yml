@@ -19,7 +19,7 @@ jobs:
       - name: Run snapshot tests
         run: python -m unittest discover -s tests -v
       - name: Validate placeholder snapshot
-        run: python -m json.tool public/data/snapshot.json > /dev/null
+        run: python scripts/validate_public_snapshot.py public/data/snapshot.json
       - name: Build Cloudflare Pages output
         run: python scripts/build_site.py
       - name: Assert the public artifact has no management controls

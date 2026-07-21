@@ -1,0 +1,23 @@
+[Unit]
+Description=Generate the DailyHotHole privacy-filtered snapshot
+After=pkuhole-monitor.service
+Requires=pkuhole-monitor.service
+
+[Service]
+Type=oneshot
+User=pkuhole
+Group=pkuhole
+WorkingDirectory=/opt/dailyhothole-public
+Environment=DAILYHOTHOLE_SOURCE_URL=http://127.0.0.1:8766/api/state
+Environment=DAILYHOTHOLE_MAX_DAYS=30
+Environment=DAILYHOTHOLE_TOP_N=10
+Environment=DAILYHOTHOLE_MAX_COMMENTS=500
+ExecStart=/usr/bin/python3 /opt/dailyhothole-public/generate_snapshot.py --output /opt/dailyhothole-public/export/snapshot.json
+ExecStartPost=/usr/bin/chmod 0644 /opt/dailyhothole-public/export/snapshot.json
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/dailyhothole-public/export
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0027
