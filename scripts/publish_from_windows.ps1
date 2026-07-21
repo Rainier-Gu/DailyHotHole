@@ -1,5 +1,5 @@
 param(
-    [string]$SshKey = "F:\PKUhole\pc1.pem",
+    [string]$SshKey = "F:\PKUhole\.automation\clab_snapshot.pem",
     [string]$ClabHost = "10.129.243.229",
     [string]$ClabUser = "rocky"
 )
@@ -9,6 +9,11 @@ Set-StrictMode -Version Latest
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $gitSafeDirectory = $repoRoot.Replace("\", "/")
+$gitCommonArgs = @(
+    "-c", "safe.directory=$gitSafeDirectory",
+    "-c", "http.sslBackend=openssl",
+    "-C", $repoRoot
+)
 $downloadDir = Join-Path $repoRoot ".deploy"
 $downloadPath = Join-Path $downloadDir "snapshot.download.json"
 $snapshotPath = Join-Path $repoRoot "public\data\snapshot.json"
@@ -20,7 +25,7 @@ if (-not (Test-Path -LiteralPath $SshKey -PathType Leaf)) {
 
 New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
 
-& git -c "safe.directory=$gitSafeDirectory" -C $repoRoot pull --rebase --autostash origin main
+& git @gitCommonArgs pull --rebase --autostash origin main
 if ($LASTEXITCODE -ne 0) { throw "git pull failed with exit code $LASTEXITCODE" }
 
 $remote = "${ClabUser}@${ClabHost}:${remotePath}"
@@ -31,19 +36,19 @@ if ($LASTEXITCODE -ne 0) { throw "snapshot download failed with exit code $LASTE
 if ($LASTEXITCODE -ne 0) { throw "snapshot validation failed with exit code $LASTEXITCODE" }
 
 Move-Item -LiteralPath $downloadPath -Destination $snapshotPath -Force
-& git -c "safe.directory=$gitSafeDirectory" -C $repoRoot add -- public/data/snapshot.json
+& git @gitCommonArgs add -- public/data/snapshot.json
 if ($LASTEXITCODE -ne 0) { throw "git add failed with exit code $LASTEXITCODE" }
 
-& git -c "safe.directory=$gitSafeDirectory" -C $repoRoot diff --cached --quiet
+& git @gitCommonArgs diff --cached --quiet
 if ($LASTEXITCODE -eq 0) {
     Write-Output "Public snapshot is unchanged; nothing to publish."
     exit 0
 }
 if ($LASTEXITCODE -ne 1) { throw "git diff failed with exit code $LASTEXITCODE" }
 
-& git -c "safe.directory=$gitSafeDirectory" -C $repoRoot commit -m "chore: update public snapshot"
+& git @gitCommonArgs commit -m "chore: update public snapshot"
 if ($LASTEXITCODE -ne 0) { throw "git commit failed with exit code $LASTEXITCODE" }
-& git -c "safe.directory=$gitSafeDirectory" -C $repoRoot push origin main
+& git @gitCommonArgs push origin main
 if ($LASTEXITCODE -ne 0) { throw "git push failed with exit code $LASTEXITCODE" }
 
 Write-Output "DailyHotHole public snapshot published successfully."
