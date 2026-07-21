@@ -3,95 +3,111 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f4f1e8" />
+    <meta name="theme-color" content="#f6f7f5" />
     <meta name="robots" content="noindex,nofollow,noarchive" />
-    <meta name="description" content="每日热洞公开只读快照" />
-    <title>每日热洞 · 公开只读版</title>
+    <meta name="description" content="每日热洞监控公开只读快照" />
+    <title>每日热洞监控 · 公开快照</title>
     <link rel="stylesheet" href="./assets/styles.css" />
   </head>
   <body>
-    <a class="skip-link" href="#mainContent">跳到主要内容</a>
-
-    <div class="page-shell">
-      <header class="site-header">
-        <div>
-          <p class="eyebrow">DAILY HOT HOLE</p>
-          <h1>每日热洞</h1>
-          <p class="subtitle">公开只读快照 · 不提供登录、设置或写入功能</p>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="brand-block">
+          <h1>每日热洞监控</h1>
+          <p id="subtitle">正在读取静态快照</p>
         </div>
-        <div class="snapshot-state" aria-live="polite">
-          <span class="state-dot" aria-hidden="true"></span>
-          <span id="snapshotState">正在读取快照</span>
+        <div class="top-actions">
+          <div id="liveBadge" class="status-badge">读取快照</div>
         </div>
       </header>
 
-      <main id="mainContent">
-        <section class="notice" aria-label="使用说明">
-          <strong>只读镜像</strong>
-          <span id="snapshotTime">数据由校内监控服务定时脱敏生成，页面本身无法修改监控任务。</span>
+      <main>
+        <section class="overview-band" aria-label="快照概览">
+          <div class="metric-grid" id="metrics"></div>
+          <button id="roundDetailsBtn" class="details-button" type="button" aria-expanded="false" aria-controls="roundDetails">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <span>快照详情</span>
+            <svg class="details-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </button>
+          <div id="roundDetails" class="round-details" hidden></div>
         </section>
 
-        <section id="metrics" class="metrics" aria-label="快照概览"></section>
+        <nav class="mobile-view-tabs" aria-label="内容视图">
+          <button type="button" data-mobile-view="rank" aria-pressed="true">榜单</button>
+          <button type="button" data-mobile-view="detail" aria-pressed="false">详情</button>
+        </nav>
 
-        <section class="toolbar" aria-label="筛选">
-          <label>
-            <span>日期</span>
-            <select id="daySelect"></select>
-          </label>
-          <label class="search-field">
-            <span>搜索当前日期</span>
-            <input id="searchInput" type="search" autocomplete="off" placeholder="搜索帖子或评论内容" />
-          </label>
-        </section>
-
-        <section class="content-grid">
-          <aside class="ranking-panel" aria-labelledby="rankingTitle">
-            <div class="panel-heading">
+        <section class="workspace">
+          <aside class="day-panel">
+            <div class="panel-title">
               <div>
-                <p class="panel-kicker">HOT RANKING</p>
-                <h2 id="rankingTitle">当日榜单</h2>
+                <p class="panel-kicker">DAILY ARCHIVE</p>
+                <h2>日期</h2>
               </div>
-              <span id="rankingCount" class="count-badge">0 条</span>
+              <span id="dayCount">0 天</span>
             </div>
-            <div id="rankingList" class="ranking-list"></div>
+            <div class="day-navigator">
+              <button id="olderDayBtn" class="day-step-button" type="button" title="较早一天" aria-label="较早一天">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+              </button>
+              <label class="day-select-wrap">
+                <span class="sr-only">选择日期</span>
+                <select id="daySelect" aria-label="选择日期"></select>
+              </label>
+              <button id="newerDayBtn" class="day-step-button" type="button" title="较新一天" aria-label="较新一天">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+            </div>
+            <div class="day-summary" id="daySummary"></div>
+            <div class="chart-wrap">
+              <canvas id="heatChart" aria-label="当日榜单热度图"></canvas>
+            </div>
           </aside>
 
-          <article class="detail-panel" aria-labelledby="detailTitle">
-            <div id="detailEmpty" class="empty-state">
-              <strong>暂无可显示内容</strong>
-              <span>请选择含有公开条目的日期。</span>
+          <section class="rank-panel mobile-panel active" data-mobile-panel="rank">
+            <div class="panel-title">
+              <div>
+                <p class="panel-kicker">HOT RANKING</p>
+                <h2 id="rankTitle">榜单</h2>
+              </div>
+              <span id="rankCount">0 条</span>
             </div>
+            <div class="rank-list" id="rankList"></div>
+          </section>
 
-            <div id="detailContent" hidden>
-              <header class="detail-header">
-                <div>
-                  <p id="detailMeta" class="panel-kicker"></p>
-                  <h2 id="detailTitle">帖子详情</h2>
-                </div>
-                <div id="detailHeat" class="heat-badge" title="点赞数与评论数之和">0</div>
-              </header>
-              <p id="postText" class="post-text"></p>
-              <div id="postStats" class="post-stats"></div>
-              <section class="comments-section" aria-labelledby="commentsTitle">
-                <div class="comments-heading">
-                  <h3 id="commentsTitle">公开评论</h3>
-                  <span id="commentsCount"></span>
-                </div>
-                <div id="commentsList" class="comments-list"></div>
-              </section>
+          <section class="detail-panel mobile-panel" data-mobile-panel="detail">
+            <div class="detail-head">
+              <div class="detail-heading">
+                <p class="eyebrow" id="detailEyebrow">未选择</p>
+                <h2 id="detailTitle">等待榜单数据</h2>
+              </div>
+              <div id="detailHeat" class="heat-token" title="当前热度">0</div>
             </div>
-          </article>
+            <div id="postBody" class="post-body"></div>
+            <div class="comment-toolbar">
+              <label class="search-box">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m16 16 4 4" />
+                </svg>
+                <input id="commentSearch" type="search" placeholder="搜索评论、楼层或身份" />
+              </label>
+              <label class="filter-toggle">
+                <input id="referencedOnlyCheckbox" type="checkbox" />
+                <span>只看引用</span>
+              </label>
+              <span id="commentCount" class="muted-count">0</span>
+            </div>
+            <div id="commentsList" class="comments-list"></div>
+          </section>
         </section>
       </main>
-
-      <footer class="site-footer">
-        <p>静态快照仅供查阅。内容版权与责任归原作者及原平台所有。</p>
-        <p>本站使用 Cloudflare Web Analytics 获取匿名化访问和性能统计。</p>
-      </footer>
     </div>
 
-    <noscript>需要启用 JavaScript 才能读取本地静态快照。</noscript>
-    <script defer src="./assets/app.js"></script>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="./assets/app.js"></script>
     <!-- cloudflare-web-analytics -->
   </body>
 </html>
