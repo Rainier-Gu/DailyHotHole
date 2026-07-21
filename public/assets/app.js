@@ -134,7 +134,6 @@ function render() {
   renderRank();
   renderDetail();
   renderComments();
-  renderMobileView();
   drawChart(getSelectedDay());
 }
 
