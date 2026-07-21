@@ -1,4 +1,4 @@
-name: Validate static snapshot site
+name: Validate Vercel static snapshot site
 
 on:
   push:
@@ -20,8 +20,10 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Validate placeholder snapshot
         run: python scripts/validate_public_snapshot.py public/data/snapshot.json
-      - name: Build Cloudflare Pages output
-        run: python scripts/build_site.py
+      - name: Validate Vercel configuration
+        run: |
+          python -m json.tool vercel.json > /dev/null
+          python -c "import json; assert json.load(open('vercel.json'))['outputDirectory'] == 'public'"
       - name: Assert the public artifact has no management controls
         run: |
-          ! grep -R -E '/api/(settings|refresh|export|backfill)|settingsDrawer|password|login_token' dist
+          ! grep -R -E '/api/(settings|refresh|export|backfill)|settingsDrawer|password|login_token|cloudflare' public vercel.json

@@ -15,7 +15,7 @@ from urllib.request import Request, urlopen
 
 
 DEFAULT_SOURCE = "http://127.0.0.1:8766/api/state"
-DEFAULT_MAX_DAYS = 30
+DEFAULT_MAX_DAYS = 10
 DEFAULT_TOP_N = 10
 DEFAULT_MAX_COMMENTS = 500
 DEFAULT_MAX_BYTES = 20 * 1024 * 1024
@@ -29,6 +29,17 @@ def env_int(name: str, default: int, minimum: int, maximum: int) -> int:
     if not minimum <= value <= maximum:
         raise ValueError(f"{name} must be between {minimum} and {maximum}")
     return value
+
+
+def env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name, "").strip().lower()
+    if not raw:
+        return default
+    if raw in {"1", "true", "yes", "on"}:
+        return True
+    if raw in {"0", "false", "no", "off"}:
+        return False
+    raise ValueError(f"{name} must be a boolean")
 
 
 def clean_text(value: Any, limit: int) -> str:
@@ -87,6 +98,7 @@ def sanitize_snapshot(
     max_days: int = DEFAULT_MAX_DAYS,
     top_n: int = DEFAULT_TOP_N,
     max_comments: int = DEFAULT_MAX_COMMENTS,
+    require_full_top_n: bool = False,
 ) -> dict[str, Any]:
     if not isinstance(source, dict) or not isinstance(source.get("days"), list):
         raise ValueError("source snapshot must contain a days array")
@@ -139,6 +151,9 @@ def sanitize_snapshot(
             post_count += 1
             comment_count += len(safe_comments)
 
+        if require_full_top_n and len(posts) != top_n:
+            raise ValueError(f"{date} has {len(posts)} public posts; expected {top_n}")
+
         public_days.append({
             "date": date,
             "leader_heat": posts[0]["heat"] if posts else 0,
@@ -146,7 +161,9 @@ def sanitize_snapshot(
         })
 
     generated_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    source_updated_at = source.get("last_scan_at") or source.get("now") or generated_at
+    source_updated_at = source.get("last_scan_at")
+    if not isinstance(source_updated_at, str) or source_updated_at.startswith("0001-"):
+        source_updated_at = source.get("now") or generated_at
     dates = [day["date"] for day in public_days]
     return {
         "schema_version": 1,
@@ -209,6 +226,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--top-n", type=int, default=env_int("DAILYHOTHOLE_TOP_N", DEFAULT_TOP_N, 1, 20))
     parser.add_argument("--max-comments", type=int, default=env_int("DAILYHOTHOLE_MAX_COMMENTS", DEFAULT_MAX_COMMENTS, 0, 2000))
     parser.add_argument("--max-bytes", type=int, default=env_int("DAILYHOTHOLE_MAX_BYTES", DEFAULT_MAX_BYTES, 1024, 24 * 1024 * 1024))
+    parser.add_argument(
+        "--require-full-top-n",
+        action="store_true",
+        default=env_bool("DAILYHOTHOLE_REQUIRE_FULL_TOP_N"),
+        help="fail instead of publishing a day with fewer than top_n public posts",
+    )
     return parser.parse_args()
 
 
@@ -219,6 +242,7 @@ def main() -> None:
         max_days=args.max_days,
         top_n=args.top_n,
         max_comments=args.max_comments,
+        require_full_top_n=args.require_full_top_n,
     )
     byte_count = write_atomic(Path(args.output), payload, args.max_bytes)
     print(

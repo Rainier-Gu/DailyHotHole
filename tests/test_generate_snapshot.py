@@ -91,6 +91,25 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual([comment["cid"] for comment in item["comments"]], [2, 3])
         self.assertEqual(item["comments_omitted"], 1)
 
+    def test_full_top_n_rejects_incomplete_day(self):
+        source = {
+            "days": [{
+                "date": "2026-07-21",
+                "posts": [{"post": {"pid": 1, "text": "only post", "timestamp": 1}}],
+            }],
+        }
+        with self.assertRaisesRegex(ValueError, "expected 10"):
+            MODULE.sanitize_snapshot(source, top_n=10, require_full_top_n=True)
+
+    def test_zero_scan_time_falls_back_to_source_time(self):
+        source = {
+            "last_scan_at": "0001-01-01T00:00:00Z",
+            "now": "2026-07-21T05:45:43Z",
+            "days": [],
+        }
+        result = MODULE.sanitize_snapshot(source)
+        self.assertEqual(result["source_updated_at"], source["now"])
+
     def test_atomic_writer_enforces_size_limit(self):
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / "snapshot.json"

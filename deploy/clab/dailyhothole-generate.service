@@ -8,10 +8,11 @@ Type=oneshot
 User=pkuhole
 Group=pkuhole
 WorkingDirectory=/opt/dailyhothole-public
-Environment=DAILYHOTHOLE_SOURCE_URL=http://127.0.0.1:8766/api/state
-Environment=DAILYHOTHOLE_MAX_DAYS=30
+Environment=DAILYHOTHOLE_SOURCE_URL=http://127.0.0.1:8766/api/state?candidate_limit=50
+Environment=DAILYHOTHOLE_MAX_DAYS=10
 Environment=DAILYHOTHOLE_TOP_N=10
 Environment=DAILYHOTHOLE_MAX_COMMENTS=500
+Environment=DAILYHOTHOLE_REQUIRE_FULL_TOP_N=true
 ExecStart=/usr/bin/python3 /opt/dailyhothole-public/generate_snapshot.py --output /opt/dailyhothole-public/export/snapshot.json
 ExecStartPost=/usr/bin/chmod 0644 /opt/dailyhothole-public/export/snapshot.json
 NoNewPrivileges=true

@@ -26,6 +26,8 @@ FORBIDDEN_KEYS = {
     "image_size",
 }
 MAX_BYTES = 24 * 1024 * 1024
+EXPECTED_DAYS = 10
+EXPECTED_POSTS_PER_DAY = 10
 
 
 def walk(value: Any, path: str = "$") -> None:
@@ -49,6 +51,21 @@ def validate(path: Path) -> dict[str, Any]:
         raise ValueError("snapshot schema_version must be 1")
     if not isinstance(payload.get("days"), list) or not isinstance(payload.get("stats"), dict):
         raise ValueError("snapshot must contain days and stats")
+    days = payload["days"]
+    if len(days) != EXPECTED_DAYS:
+        raise ValueError(f"snapshot must contain exactly {EXPECTED_DAYS} days")
+    for day in days:
+        posts = day.get("posts") if isinstance(day, dict) else None
+        if not isinstance(posts, list) or len(posts) != EXPECTED_POSTS_PER_DAY:
+            date = day.get("date", "unknown") if isinstance(day, dict) else "unknown"
+            raise ValueError(f"{date} must contain exactly {EXPECTED_POSTS_PER_DAY} posts")
+        if [item.get("rank") for item in posts] != list(range(1, EXPECTED_POSTS_PER_DAY + 1)):
+            raise ValueError(f"{day.get('date', 'unknown')} has invalid rank values")
+    policy = payload.get("public_policy")
+    if not isinstance(policy, dict) or policy.get("max_days") != EXPECTED_DAYS:
+        raise ValueError(f"public_policy.max_days must be {EXPECTED_DAYS}")
+    if policy.get("top_n") != EXPECTED_POSTS_PER_DAY:
+        raise ValueError(f"public_policy.top_n must be {EXPECTED_POSTS_PER_DAY}")
     walk(payload)
     return payload
 
